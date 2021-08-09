@@ -1,0 +1,234 @@
+<meta charset="UTF-8">
+<body style="font-size:24px" onload="initialize()">
+Lives: <span id="livesSpan">9</span><br><br>
+
+<span id="starsSpan" placeholder="*****">stars</span> | <span id="EnglishStarsSpan">english</span><br><br>
+
+Letters tried: <span id="lettersTriedSpan"></span><BR><BR>
+
+Click a letter or type it.<br><br>
+
+<span id="alphabetSpan"></span>
+<br>
+<span id="EnglishAlphabetSpan"></span>
+<br><br>
+<button id="skipButton" onclick="skip()">Skip</button> 
+<button id="lookupButton" onclick="lookUp()">Look up</button>
+<script src="loadLanguages1.js"></script>
+<script src="dictionary1.js"></script>
+<script src="library.js"></script>
+<script>
+
+// word indices prep
+	currentWordIndices=[];
+	loadOrMakeCurrentWordIndices();
+	doubled=true;
+// board prep
+//boardHeight=currentWordIndices.length;
+//; boardWidth=3; board=[];
+
+
+
+// current/target language prep
+	if (localStorage["fader_currentLanguage"]) {targetLanguage=localStorage["fader_currentLanguage"]} 
+	else
+	{
+	targetLanguage="Turkish";
+	}
+	currentLanguage=targetLanguage;
+if (localStorage["fader_timesViewed"]) {timesViewed=JSON.parse(localStorage["fader_timesViewed"])}
+else {
+	timesViewed=new Array(cueWords[currentLanguage].length); timesViewed.fill(0);
+	
+}	
+function loadOrMakeCurrentWordIndices()
+	{
+	if (localStorage["fader_currentWordIndices"]) {currentWordIndices=JSON.parse(localStorage["fader_currentWordIndices"])}
+
+		else {
+		currentWordIndices="0,1,2,3,4,5,6,7".split(",");
+		currentWordIndices.map( (e,ind,ar) => ar[ind]=Math.floor(Math.random()*cueWords[currentLanguage].length) ); 
+		
+		localStoreWordIndices();	
+	}
+	}
+//alert(2);
+</script>
+
+</head>
+<body onload="loaded()">
+<script>
+	
+
+
+// dictionary=["apple", "banana", "orange", "grapefruit", "date", "fig", "grape"];
+//dictionary=cueWords[currentLanguage];
+startingLives=9;
+alphabet="abcdefghijklmnopqrstuvwxyz";
+if (alphabets[currentLanguage]) {alphabet=alphabets[currentLanguage]; console.log("setting alphabet to " + currentLanguage)}
+currentAlphabetArray=alphabets[currentLanguage].split("");
+
+viewedWordIndices=[];
+if (localStorage["fader_timesViewed"]) {
+	JSON.parse(localStorage["fader_timesViewed"]).map
+		( (el,ind)=> {if ( el>0) {viewedWordIndices.push(ind)}});
+		
+	dictionaryIndices=viewedWordIndices.map(el => {return el})
+	}
+
+lettersOfWordGuessed=[];
+lettersOfAlphabetGuessed=[];
+targetWordArray=[];
+//alert(1);
+outputString="";
+fillAlphabetSpanWithClickableLettersPart1("alphabetSpan",currentLanguage);
+fillAlphabetSpanWithClickableLettersPart1("EnglishAlphabetSpan","English");
+function fillAlphabetSpanWithClickableLettersPart1(theSpan, theLanguage) {
+	outputString="";
+	alphabets[theLanguage].split("").forEach(function (el,ind) {
+		outputString+="<span id=\"" + theLanguage +"letter" + el +"\"> " + el + " </span>";
+		
+	})
+	// console.log("outputString is: " + outputString);
+	document.getElementById(theSpan).innerHTML=outputString;
+//alert(8);
+	
+}
+</script>
+</body >
+<script>
+//document.body.onload="initialize()";
+function initialize() {
+	
+	fillAlphabetSpanWithClickableLettersPart2(currentLanguage);
+	fillAlphabetSpanWithClickableLettersPart2("English");
+	newWord();
+
+	
+}
+function newWord() {
+	lettersOfWordGuessed=[];
+	lettersOfAlphabetGuessed=[];
+	
+	
+	chooseTargetWord();
+	displayStars();
+	
+	numberOfLettersInTheWordGuessed=0;
+	wrongLettersAlreadyClicked=[];
+	showWrongLettersAlreadyClicked();
+	targetWordArray=cueWords[currentLanguage][targetWordIndex].split("");
+	currentLives=startingLives;
+	showCurrentLives();
+}
+function showCurrentLives() {document.getElementById("livesSpan").innerHTML=currentLives;}
+function fillAlphabetSpanWithClickableLettersPart2(theLanguage) {
+	alphabets[theLanguage].split("").forEach(function (el,ind) {
+		theLetterSpan=document.getElementById(theLanguage+"letter"+el);
+		theLetterSpan.onclick=function () {letterClicked(el)}
+
+})}
+function letterClicked(theLetter) {
+	
+	theLetter=theLetter.toLowerCase();
+	
+	console.log(theLetter + " was clicked");
+	if (wrongLettersAlreadyClicked.indexOf(theLetter)!=-1) {
+		alert("You already tried " + theLetter);}
+	else if (lettersOfAlphabetGuessed.indexOf(theLetter)!=-1) {alert("Yes there's a "+ theLetter+" but you already knew that");}
+	
+	// else if (cueWords[currentLanguage][targetWordIndex].indexOf(theLetter)==-1) {wrongLetterGuessed(theLetter)}
+	else if (getCueWord().includes(theLetter) == false && getTargetWord().includes(theLetter)==false)
+		{wrongLetterGuessed(theLetter)}
+	else {rightLetterClicked(theLetter)};
+	
+}
+function wordToUnaccented (theWord) {
+	let returnWordArray=[];
+	theWord.split("").map(function (el,ind) {
+		if (accentedLettersToUnaccented[el]) {el=accentedLettersToUnaccented[theLetter]; alert(7)};
+		returnWordArray.push(el);
+	})
+	return returnWordArray.join("");
+	
+}
+
+
+function showWrongLettersAlreadyClicked() {document.getElementById("lettersTriedSpan").innerHTML=""; } // XX
+function wrongLetterGuessed(theLetter) {
+	wrongLettersAlreadyClicked.push(theLetter);
+	document.getElementById("lettersTriedSpan").innerHTML+=" " +theLetter;
+	currentLives--;
+	showCurrentLives()
+	if (currentLives<=0) {alert("You died\n, the word was " + getTargetWord()); newWord()}
+
+}
+function rightLetterClicked(theLetter) {
+	lettersOfAlphabetGuessed.push(theLetter);
+	//allGuessed=true;
+	/*
+	[getCueWord(),getTargetWord()].map( (el,ind) => 
+		{hiddenWordArray=el.split("").map( function (el,ind) {
+			if (lettersOfAlphabetGuessed.indexOf(el)!=-1) {return el}
+			 else {allGuessed=false; return "*";}
+			
+		})
+	
+	
+	//alert(hiddenWordArray);
+	hiddenWord=hiddenWordArray.join("");
+	if (ind==1) {displayHiddenWord()}
+		else
+	{displayHiddenCueWord()}
+	})
+	*/
+	allGuessed=(getCueWord()+getTargetWord()).split("").every(el => {return (isPunctuation(el) || lettersOfAlphabetGuessed.includes(el))})
+	;displayStars()
+	if (allGuessed) {giveFeedback("You got it"); newWord()};
+	
+}
+function chooseTargetWord() {
+	targetWordIndex=selectRandomMember(getSeenWords());
+	console.log("targetWordIndex is: " + targetWordIndex + ", " + getTargetWord());
+}
+function getTargetWord() {
+	
+	console.log("function getTargetWord() here");
+
+	return cueWords[currentLanguage][currentWordIndices[targetWordIndex]]
+}
+function displayHiddenWord() {document.getElementById("starsSpan").innerHTML=hiddenWord;}
+
+function displayHiddenCueWord() {document.getElementById("EnglishStarsSpan").innerHTML=hiddenWord;}
+function displayStars() {
+
+	document.getElementById("starsSpan").innerHTML= putGivenLettersInStarredString(turnStringIntoStarsExceptPunctuation(getTargetWord()),
+	getTargetWord(),
+	lettersOfAlphabetGuessed);
+	
+	document.getElementById("EnglishStarsSpan").innerHTML=putGivenLettersInStarredString(turnStringIntoStarsExceptPunctuation(getCueWord()),
+	getCueWord(),
+	lettersOfAlphabetGuessed
+	);
+}
+
+function multiplyString(theString, multiplier) {
+	let outputString="";
+	for (i=0;i<multiplier; i++) {
+	
+		outputString+=theString;
+	}
+	return outputString;
+}
+function lookUp() {
+	window.open('https://en.wiktionary.org/wiki/' + getTargetWord() + "#" + currentLanguage);
+}
+function getTargetWord() {return cueWords[currentLanguage][targetWordIndex]}
+function getCueWord() {return cueWords["English"][targetWordIndex]}
+function skip() {
+	giveFeedback("Skipped; the word was " + getTargetWord() + ", " + getCueWord());
+	newWord();
+}
+function giveFeedback(string) {feedbackArray.push(string);console.log(string)};
+feedbackArray=[];
+</script>
